@@ -97,6 +97,9 @@ class ADR_Updater {
         // Limpiar caché cuando se limpia el caché de actualizaciones
         add_action( 'delete_site_transient_update_plugins', [ $this, 'clear_cache' ] );
 
+        // Limpiar el transient de WordPress después de instalar la actualización
+        add_action( 'upgrader_process_complete', [ $this, 'after_update' ], 10, 2 );
+
         // Agregar link "Buscar actualizaciones" en la lista de plugins
         add_filter( 'plugin_action_links_' . $this->plugin_file, [ $this, 'add_check_update_link' ] );
 
@@ -105,6 +108,50 @@ class ADR_Updater {
 
         // Mostrar aviso después de verificar manualmente
         add_action( 'admin_notices', [ $this, 'show_update_notice' ] );
+    }
+
+    /**
+     * Limpiar el transient de actualizaciones justo después de que
+     * WordPress instala una actualización de este plugin.
+     * Evita que WordPress siga mostrando la misma versión como "pendiente".
+     *
+     * @param WP_Upgrader $upgrader  Instancia del upgrader.
+     * @param array       $hook_extra Datos del hook (tipo, plugins, etc.).
+     */
+    public function after_update( $upgrader, array $hook_extra ): void {
+        // Solo actuar si fue una actualización de plugins (no temas ni core)
+        if ( ( $hook_extra['type'] ?? '' ) !== 'plugin' ) {
+            return;
+        }
+
+        $updated_plugins = $hook_extra['plugins'] ?? [];
+
+        // Verificar si nuestro plugin estaba en la lista de actualizados
+        if ( ! in_array( $this->plugin_file, $updated_plugins, true ) ) {
+            return;
+        }
+
+        // 1. Limpiar el caché de GitHub para que la próxima consulta sea fresca
+        $this->clear_cache();
+
+        // 2. Remover nuestro plugin del response[] del transient de WordPress
+        //    para que no siga apareciendo como "hay actualización disponible"
+        $update_transient = get_site_transient( 'update_plugins' );
+
+        if ( $update_transient && isset( $update_transient->response[ $this->plugin_file ] ) ) {
+            unset( $update_transient->response[ $this->plugin_file ] );
+
+            // Mover a no_update[] con la versión actual
+            $update_transient->no_update[ $this->plugin_file ] = (object) [
+                'slug'        => ADR_IA_EDIT_SLUG,
+                'plugin'      => $this->plugin_file,
+                'new_version' => $this->current_version,
+                'url'         => 'https://github.com/' . self::GITHUB_REPO,
+                'package'     => '',
+            ];
+
+            set_site_transient( 'update_plugins', $update_transient );
+        }
     }
 
     // ─── NÚCLEO: VERIFICAR ACTUALIZACIONES ────────────────────────────────────
