@@ -283,9 +283,8 @@ class ADR_Updater {
         wp_safe_redirect(
             add_query_arg(
                 [
-                    'page'             => 'plugins.php',
                     'adr_update_status' => $status,
-                    'adr_latest'       => urlencode( $version ),
+                    'adr_latest'        => urlencode( $version ),
                 ],
                 admin_url( 'plugins.php' )
             )
