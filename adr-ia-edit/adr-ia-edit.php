@@ -3,8 +3,7 @@
  * Plugin Name: ADR-IA-Edit
  * Plugin URI:  https://adrianraineri.com
  * Description: Integra IAs (Anthropic Claude y Google Gemini) en el editor de WordPress para generar diseños con Impreza y WPBakery Page Builder.
- * Version:     1.2.01. Cambiás la versión en el header del plugin:
- * Version: 1.2.0     ← solo acá, ya no hay define manual
+ * Version:     1.3.0
  * Author:      Luis Adrián Raineri
  * Author URI:  https://adrianraineri.com
  * License:     GPL-2.0-or-later

@@ -1,0 +1,97 @@
+name: 🚀 Auto Release ADR-IA-Edit
+
+# Se ejecuta automáticamente cuando hacés push a main
+# y el archivo principal del plugin cambió
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'adr-ia-edit/adr-ia-edit.php'
+
+jobs:
+  release:
+    name: Crear Release automático
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write  # Necesario para crear releases y tags
+
+    steps:
+      # 1. Descargar el código de la rama main
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Necesario para ver todos los tags
+
+      # 2. Leer la versión del header del plugin PHP
+      - name: 🔍 Leer versión del plugin
+        id: version
+        run: |
+          VERSION=$(grep -m1 "^\s*\*\s*Version:" adr-ia-edit/adr-ia-edit.php \
+            | sed 's/.*Version:\s*//' \
+            | tr -d ' \r\n')
+
+          if [ -z "$VERSION" ]; then
+            echo "❌ No se pudo leer la versión del plugin"
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+          echo "✅ Versión detectada: $VERSION"
+
+      # 3. Verificar si este tag ya existe (evitar duplicados)
+      - name: 🔎 Verificar si el tag ya existe
+        id: tag_check
+        run: |
+          TAG="v${{ steps.version.outputs.version }}"
+          if git ls-remote --tags origin | grep -q "refs/tags/$TAG$"; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "⚠️ El tag $TAG ya existe. No se creará un nuevo release."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "✅ Tag $TAG es nuevo. Se procederá con el release."
+          fi
+
+      # 4. Crear el ZIP del plugin (solo la carpeta adr-ia-edit/)
+      - name: 📦 Generar adr-ia-edit.zip
+        if: steps.tag_check.outputs.exists == 'false'
+        run: |
+          cd ${{ github.workspace }}
+
+          # Crear ZIP con solo la carpeta del plugin
+          # Excluye archivos innecesarios para producción
+          zip -r adr-ia-edit.zip adr-ia-edit/ \
+            --exclude "*.git*" \
+            --exclude "*/.DS_Store" \
+            --exclude "*/Thumbs.db" \
+            --exclude "*.map"
+
+          echo "✅ ZIP creado:"
+          ls -lh adr-ia-edit.zip
+
+      # 5. Crear el Release en GitHub y subir el ZIP
+      - name: 🎉 Crear GitHub Release
+        if: steps.tag_check.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true   # Genera changelog automático con los commits
+          files: adr-ia-edit.zip
+          body: |
+            ## ADR-IA-Edit ${{ steps.version.outputs.tag }}
+
+            ### 📦 Instalación
+            Descargá `adr-ia-edit.zip` y subilo desde **Plugins → Agregar nuevo → Subir plugin**.
+
+            ### 🔄 Actualización automática
+            Si ya tenés el plugin instalado, WordPress detectará esta actualización automáticamente.
+
+            ---
+            *Release generado automáticamente desde la rama `main`.*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
