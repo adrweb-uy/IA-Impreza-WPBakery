@@ -3,7 +3,7 @@
  * Plugin Name: ADR-IA-Edit
  * Plugin URI:  https://adrianraineri.com
  * Description: Integra IAs (Anthropic Claude y Google Gemini) en el editor de WordPress para generar diseños con Impreza y WPBakery Page Builder.
- * Version:     1.0.0
+ * Version:     1.1.0
  * Author:      Luis Adrián Raineri
  * Author URI:  https://adrianraineri.com
  * License:     GPL-2.0-or-later
@@ -15,21 +15,22 @@
  */
 
 // Seguridad: bloquear acceso directo al archivo
-if ( ! defined( 'ABSPATH' ) ) {
+if (!defined('ABSPATH')) {
     exit;
 }
 
 // Constantes del plugin
-define( 'ADR_IA_EDIT_VERSION', '1.0.0' );
-define( 'ADR_IA_EDIT_PLUGIN_FILE', __FILE__ );
-define( 'ADR_IA_EDIT_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
-define( 'ADR_IA_EDIT_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'ADR_IA_EDIT_SLUG', 'adr-ia-edit' );
+define('ADR_IA_EDIT_VERSION', '1.0.0');
+define('ADR_IA_EDIT_PLUGIN_FILE', __FILE__);
+define('ADR_IA_EDIT_PLUGIN_DIR', plugin_dir_path(__FILE__));
+define('ADR_IA_EDIT_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('ADR_IA_EDIT_SLUG', 'adr-ia-edit');
 
 /**
  * Clase principal del plugin ADR-IA-Edit
  */
-final class ADR_IA_Edit {
+final class ADR_IA_Edit
+{
 
     /**
      * Instancia única (Singleton)
@@ -41,8 +42,9 @@ final class ADR_IA_Edit {
     /**
      * Obtener instancia única
      */
-    public static function get_instance(): ADR_IA_Edit {
-        if ( null === self::$instance ) {
+    public static function get_instance(): ADR_IA_Edit
+    {
+        if (null === self::$instance) {
             self::$instance = new self();
         }
         return self::$instance;
@@ -51,7 +53,8 @@ final class ADR_IA_Edit {
     /**
      * Constructor privado
      */
-    private function __construct() {
+    private function __construct()
+    {
         $this->load_dependencies();
         $this->init_hooks();
     }
@@ -59,7 +62,8 @@ final class ADR_IA_Edit {
     /**
      * Cargar clases necesarias
      */
-    private function load_dependencies(): void {
+    private function load_dependencies(): void
+    {
         // Sistema de actualizaciones desde GitHub
         require_once ADR_IA_EDIT_PLUGIN_DIR . 'includes/class-adr-updater.php';
 
@@ -86,24 +90,25 @@ final class ADR_IA_Edit {
     /**
      * Registrar hooks de WordPress
      */
-    private function init_hooks(): void {
+    private function init_hooks(): void
+    {
         // Inicializar componentes en el hook 'init'
-        add_action( 'init', [ $this, 'init_components' ] );
+        add_action('init', [$this, 'init_components']);
 
         // Sistema de actualizaciones desde GitHub Releases
         new ADR_Updater(
-            plugin_basename( ADR_IA_EDIT_PLUGIN_FILE ),
+            plugin_basename(ADR_IA_EDIT_PLUGIN_FILE),
             ADR_IA_EDIT_VERSION
         );
 
         // Cargar traducciones
-        add_action( 'plugins_loaded', [ $this, 'load_textdomain' ] );
+        add_action('plugins_loaded', [$this, 'load_textdomain']);
 
         // Scripts y estilos del admin
-        add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
 
         // Hacer que los links de la lista de plugins abran en pestaña nueva
-        add_filter( 'plugin_row_meta', [ $this, 'modify_plugin_row_meta' ], 10, 2 );
+        add_filter('plugin_row_meta', [$this, 'modify_plugin_row_meta'], 10, 2);
     }
 
     /**
@@ -113,11 +118,12 @@ final class ADR_IA_Edit {
      * @param string $plugin_file Path del archivo del plugin.
      * @return array
      */
-    public function modify_plugin_row_meta( array $plugin_meta, string $plugin_file ): array {
-        if ( strpos( $plugin_file, ADR_IA_EDIT_SLUG ) !== false ) {
-            foreach ( $plugin_meta as &$meta ) {
-                if ( strpos( $meta, 'href=' ) !== false && strpos( $meta, 'target=' ) === false ) {
-                    $meta = str_replace( '<a ', '<a target="_blank" rel="noopener noreferrer" ', $meta );
+    public function modify_plugin_row_meta(array $plugin_meta, string $plugin_file): array
+    {
+        if (strpos($plugin_file, ADR_IA_EDIT_SLUG) !== false) {
+            foreach ($plugin_meta as &$meta) {
+                if (strpos($meta, 'href=') !== false && strpos($meta, 'target=') === false) {
+                    $meta = str_replace('<a ', '<a target="_blank" rel="noopener noreferrer" ', $meta);
                 }
             }
         }
@@ -127,7 +133,8 @@ final class ADR_IA_Edit {
     /**
      * Inicializar componentes del plugin
      */
-    public function init_components(): void {
+    public function init_components(): void
+    {
         // Inicializar menú de admin
         new ADR_Admin_Menu();
 
@@ -144,11 +151,12 @@ final class ADR_IA_Edit {
     /**
      * Cargar traducciones del plugin
      */
-    public function load_textdomain(): void {
+    public function load_textdomain(): void
+    {
         load_plugin_textdomain(
             'adr-ia-edit',
             false,
-            dirname( plugin_basename( ADR_IA_EDIT_PLUGIN_FILE ) ) . '/languages/'
+            dirname(plugin_basename(ADR_IA_EDIT_PLUGIN_FILE)) . '/languages/'
         );
     }
 
@@ -157,7 +165,8 @@ final class ADR_IA_Edit {
      *
      * @param string $hook Sufijo de la página admin actual.
      */
-    public function enqueue_admin_assets( string $hook ): void {
+    public function enqueue_admin_assets(string $hook): void
+    {
         // Solo cargar en páginas relevantes del plugin o en el editor de posts
         $allowed_pages = [
             'post.php',
@@ -166,7 +175,7 @@ final class ADR_IA_Edit {
             ADR_IA_EDIT_SLUG . '_page_adr-ia-edit-options',
         ];
 
-        if ( ! in_array( $hook, $allowed_pages, true ) ) {
+        if (!in_array($hook, $allowed_pages, true)) {
             return;
         }
 
@@ -182,7 +191,7 @@ final class ADR_IA_Edit {
         wp_enqueue_script(
             'adr-ia-edit-admin',
             ADR_IA_EDIT_PLUGIN_URL . 'assets/js/admin.js',
-            [ 'jquery' ],
+            ['jquery'],
             ADR_IA_EDIT_VERSION,
             true
         );
@@ -192,15 +201,15 @@ final class ADR_IA_Edit {
             'adr-ia-edit-admin',
             'adrIaEditData',
             [
-                'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-                'nonce'   => wp_create_nonce( 'adr_ia_edit_nonce' ),
+                'ajaxUrl' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('adr_ia_edit_nonce'),
                 'strings' => [
-                    'generating'    => __( 'Generando con IA...', 'adr-ia-edit' ),
-                    'error'         => __( 'Error al conectar con la IA. Verificá la API Key.', 'adr-ia-edit' ),
-                    'inserted'      => __( '¡Código insertado en el editor!', 'adr-ia-edit' ),
-                    'noContent'     => __( 'No hay contenido para insertar.', 'adr-ia-edit' ),
-                    'emptyPrompt'   => __( 'Por favor escribí una instrucción antes de generar.', 'adr-ia-edit' ),
-                    'noApiKey'      => __( 'No hay API Key configurada. Andá a ADR-IA-Edit → Opciones.', 'adr-ia-edit' ),
+                    'generating' => __('Generando con IA...', 'adr-ia-edit'),
+                    'error' => __('Error al conectar con la IA. Verificá la API Key.', 'adr-ia-edit'),
+                    'inserted' => __('¡Código insertado en el editor!', 'adr-ia-edit'),
+                    'noContent' => __('No hay contenido para insertar.', 'adr-ia-edit'),
+                    'emptyPrompt' => __('Por favor escribí una instrucción antes de generar.', 'adr-ia-edit'),
+                    'noApiKey' => __('No hay API Key configurada. Andá a ADR-IA-Edit → Opciones.', 'adr-ia-edit'),
                 ],
             ]
         );
@@ -210,7 +219,8 @@ final class ADR_IA_Edit {
 /**
  * Función de acceso global al plugin
  */
-function adr_ia_edit(): ADR_IA_Edit {
+function adr_ia_edit(): ADR_IA_Edit
+{
     return ADR_IA_Edit::get_instance();
 }
 
