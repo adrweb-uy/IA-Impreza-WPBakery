@@ -20,11 +20,15 @@ if (!defined('ABSPATH')) {
 }
 
 // Constantes del plugin
-define('ADR_IA_EDIT_VERSION', '1.0.0');
-define('ADR_IA_EDIT_PLUGIN_FILE', __FILE__);
-define('ADR_IA_EDIT_PLUGIN_DIR', plugin_dir_path(__FILE__));
-define('ADR_IA_EDIT_PLUGIN_URL', plugin_dir_url(__FILE__));
-define('ADR_IA_EDIT_SLUG', 'adr-ia-edit');
+// La versión se lee dinámicamente del header del plugin para que siempre esté sincronizada
+$_adr_plugin_data = get_file_data( __FILE__, [ 'Version' => 'Version' ] );
+define( 'ADR_IA_EDIT_VERSION',    $_adr_plugin_data['Version'] ?? '1.0.0' );
+define( 'ADR_IA_EDIT_PLUGIN_FILE', __FILE__ );
+define( 'ADR_IA_EDIT_PLUGIN_DIR',  plugin_dir_path( __FILE__ ) );
+define( 'ADR_IA_EDIT_PLUGIN_URL',  plugin_dir_url( __FILE__ ) );
+define( 'ADR_IA_EDIT_SLUG',        'adr-ia-edit' );
+unset( $_adr_plugin_data ); // Limpiar variable temporal
+
 
 /**
  * Clase principal del plugin ADR-IA-Edit
