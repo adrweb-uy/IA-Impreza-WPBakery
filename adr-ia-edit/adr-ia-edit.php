@@ -60,6 +60,9 @@ final class ADR_IA_Edit {
      * Cargar clases necesarias
      */
     private function load_dependencies(): void {
+        // Sistema de actualizaciones desde GitHub
+        require_once ADR_IA_EDIT_PLUGIN_DIR . 'includes/class-adr-updater.php';
+
         // Proveedor base (abstract)
         require_once ADR_IA_EDIT_PLUGIN_DIR . 'includes/providers/class-adr-provider-base.php';
 
@@ -87,11 +90,38 @@ final class ADR_IA_Edit {
         // Inicializar componentes en el hook 'init'
         add_action( 'init', [ $this, 'init_components' ] );
 
+        // Sistema de actualizaciones desde GitHub Releases
+        new ADR_Updater(
+            plugin_basename( ADR_IA_EDIT_PLUGIN_FILE ),
+            ADR_IA_EDIT_VERSION
+        );
+
         // Cargar traducciones
         add_action( 'plugins_loaded', [ $this, 'load_textdomain' ] );
 
         // Scripts y estilos del admin
         add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
+
+        // Hacer que los links de la lista de plugins abran en pestaña nueva
+        add_filter( 'plugin_row_meta', [ $this, 'modify_plugin_row_meta' ], 10, 2 );
+    }
+
+    /**
+     * Modificar los links en la fila del plugin para que abran en pestaña nueva.
+     *
+     * @param array  $plugin_meta Array de links meta.
+     * @param string $plugin_file Path del archivo del plugin.
+     * @return array
+     */
+    public function modify_plugin_row_meta( array $plugin_meta, string $plugin_file ): array {
+        if ( strpos( $plugin_file, ADR_IA_EDIT_SLUG ) !== false ) {
+            foreach ( $plugin_meta as &$meta ) {
+                if ( strpos( $meta, 'href=' ) !== false && strpos( $meta, 'target=' ) === false ) {
+                    $meta = str_replace( '<a ', '<a target="_blank" rel="noopener noreferrer" ', $meta );
+                }
+            }
+        }
+        return $plugin_meta;
     }
 
     /**
