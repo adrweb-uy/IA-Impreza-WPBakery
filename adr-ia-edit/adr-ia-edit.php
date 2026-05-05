@@ -3,7 +3,8 @@
  * Plugin Name: ADR-IA-Edit
  * Plugin URI:  https://adrianraineri.com
  * Description: Integra IAs (Anthropic Claude y Google Gemini) en el editor de WordPress para generar diseños con Impreza y WPBakery Page Builder.
- * Version:     1.1.1
+ * Version:     1.2.01. Cambiás la versión en el header del plugin:
+ * Version: 1.2.0     ← solo acá, ya no hay define manual
  * Author:      Luis Adrián Raineri
  * Author URI:  https://adrianraineri.com
  * License:     GPL-2.0-or-later
@@ -21,13 +22,13 @@ if (!defined('ABSPATH')) {
 
 // Constantes del plugin
 // La versión se lee dinámicamente del header del plugin para que siempre esté sincronizada
-$_adr_plugin_data = get_file_data( __FILE__, [ 'Version' => 'Version' ] );
-define( 'ADR_IA_EDIT_VERSION',    $_adr_plugin_data['Version'] ?? '1.0.0' );
-define( 'ADR_IA_EDIT_PLUGIN_FILE', __FILE__ );
-define( 'ADR_IA_EDIT_PLUGIN_DIR',  plugin_dir_path( __FILE__ ) );
-define( 'ADR_IA_EDIT_PLUGIN_URL',  plugin_dir_url( __FILE__ ) );
-define( 'ADR_IA_EDIT_SLUG',        'adr-ia-edit' );
-unset( $_adr_plugin_data ); // Limpiar variable temporal
+$_adr_plugin_data = get_file_data(__FILE__, ['Version' => 'Version']);
+define('ADR_IA_EDIT_VERSION', $_adr_plugin_data['Version'] ?? '1.0.0');
+define('ADR_IA_EDIT_PLUGIN_FILE', __FILE__);
+define('ADR_IA_EDIT_PLUGIN_DIR', plugin_dir_path(__FILE__));
+define('ADR_IA_EDIT_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('ADR_IA_EDIT_SLUG', 'adr-ia-edit');
+unset($_adr_plugin_data); // Limpiar variable temporal
 
 
 /**
